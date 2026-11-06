@@ -3,6 +3,8 @@
 from alembic import context
 from app.core.config import get_settings
 from app.db.base import Base
+from app.modules.suppliers.models import Supplier 
+from app.modules.stock.models import StockMovement
 from sqlalchemy import engine_from_config, pool
 
 config = context.config
