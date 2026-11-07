@@ -1,0 +1,6 @@
+app:
+  security:
+    jwt:
+      ephemeral-dev-key: false
+    refresh:
+      cookie-secure: true

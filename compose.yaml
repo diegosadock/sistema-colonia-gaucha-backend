@@ -1,9 +1,54 @@
+name: colonia-gaucha
+
 services:
-  postgres:
-    image: 'postgres:latest'
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
     environment:
-      - 'POSTGRES_DB=mydatabase'
-      - 'POSTGRES_PASSWORD=secret'
-      - 'POSTGRES_USER=myuser'
+      POSTGRES_DB: ${POSTGRES_DB:-colonia_gaucha}
+      POSTGRES_USER: ${POSTGRES_USER:-colonia_gaucha}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Configure POSTGRES_PASSWORD in .env}
     ports:
-      - '5432'
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - backend
+
+  api:
+    profiles: ["full"]
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${POSTGRES_DB:-colonia_gaucha}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-colonia_gaucha}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?Configure POSTGRES_PASSWORD in .env}
+      SPRING_DOCKER_COMPOSE_ENABLED: "false"
+      SPRING_FLYWAY_ENABLED: "true"
+      SPRING_PROFILES_ACTIVE: dev
+      SERVER_PORT: "8080"
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+    ports:
+      - "127.0.0.1:${API_PORT:-8000}:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - backend
+
+networks:
+  backend:
+    driver: bridge
+
+volumes:
+  postgres_data:

@@ -1,0 +1,6 @@
+app:
+  security:
+    jwt:
+      ephemeral-dev-key: ${JWT_EPHEMERAL_DEV_KEY:true}
+    refresh:
+      cookie-secure: false

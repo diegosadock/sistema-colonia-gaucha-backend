@@ -1,0 +1,10 @@
+spring:
+  docker:
+    compose:
+      enabled: false
+app:
+  security:
+    jwt:
+      ephemeral-dev-key: true
+    refresh:
+      cookie-secure: false
